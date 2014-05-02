@@ -9,22 +9,18 @@ function init() {
 }
 
 function buildPrefsWidget() {
-  let frame = new Gtk.Box({
-    orientation: Gtk.Orientation.VERTICAL,
-    border_width: 10,
-    expand: true,
-  });
-  
   let vbox = new Gtk.Box({
     orientation: Gtk.Orientation.VERTICAL,
     margin: 20,
     margin_top: 10,
+    expand: true,
+    spacing: 10,
   });
   
   let options = [
     [ "Display mode",
       make_combo('display-mode', 
-                 ['Time', 'Percentage']) ],
+                 ['Time', 'Percentage', 'Icon only']) ],
     [ "Format time as",
       make_combo('time-mode', 
                  ['Canonical (h:mm)',
@@ -34,6 +30,10 @@ function buildPrefsWidget() {
                  ['Canonical (1:30)',
                   'Labels (1h30m)',
                   'Angular (1\'30")']) ],
+    [ 'When charging, show',
+      make_combo('when-charging', ['Nothing',
+                                   'Icon only',
+                                   'Icon and label']) ],
     [ 'When battery full, show',
       make_combo('when-full', ['Nothing',
                                'Icon only',
@@ -44,15 +44,14 @@ function buildPrefsWidget() {
     vbox.add(make_option(options[i][0], options[i][1].call(this)));
   }
   
-  frame.add(vbox);
-  frame.show_all();
-  return frame;
+  vbox.show_all();
+  return vbox;
 }
 
 function make_combo(pref, values) {
   return function() {
     let combo = new Gtk.ComboBoxText();
-  
+    
     for (var i in values) {
       combo.append_text(values[i]);
     }

@@ -9,9 +9,9 @@ const Main = imports.ui.main;
 const UPower = imports.ui.status.power.UPower;
 const PowerIndicator = Main.panel.statusArea.aggregateMenu._power;
 
-let label  = null;
+let label   = null;
 let signals = [];
-let cfg = {};
+let cfg     = {};
 
 let update_callback = null;
 
@@ -21,7 +21,11 @@ function init() {
 function enable() {
   init_settings();
   
-  label = new St.Label();
+  if (cfg.displayMode != 'icon_only') {
+    label = new St.Label();
+    PowerIndicator.indicators.add(
+      label, { y_align: St.Align.MIDDLE, y_fill: false });
+  }
   
   update_show();
     
@@ -52,6 +56,15 @@ function restart() {
   enable();
 }
 
+function update_show() {
+  update_callback = update;
+  if (label) {
+    label.show();
+  }
+  PowerIndicator.indicators.show();
+  update();
+}
+
 function init_settings() {
   function set(key, def) {
     signals.push([Settings, Settings.connect("changed::" + key, restart)]);
@@ -65,26 +78,27 @@ function init_settings() {
   }
 
   cfg = {
-    displayMode : set('display-mode', 'time'),
-    timeMode    : set('time-mode'   , 'canonical'),
-    whenFull    : set('when-full'   , 'all'),
-    timeStyle   : set('time-style'  , 'ticker'),
+    displayMode : set('display-mode' , 'time'),
+    timeMode    : set('time-mode'    , 'canonical'),
+    whenFull    : set('when-full'    , 'all'),
+    whenCharging: set('when-charging', 'all'),
+    timeStyle   : set('time-style'   , 'ticker'),
   };
 }
 
 function format_time(time_s) {
- let mins    = Math.round(time_s / 60);
+  let mins    = Math.round(time_s / 60);
  
- let hrs     = Math.floor(mins / 60);
- let hr_mins = mins % 60;
+  let hrs     = Math.floor(mins / 60);
+  let hr_mins = mins % 60;
  
- let hr_chr  = ':';
- let min_chr = '';
+  let hr_chr  = ':';
+  let min_chr = '';
  
- switch (cfg.timeStyle) {
+  switch (cfg.timeStyle) {
   default:
   case 'ticker':
-    break;
+     break;
   case 'names':
     hr_chr  = "h";
     min_chr = "m";
@@ -93,15 +107,18 @@ function format_time(time_s) {
     hr_chr  = "'";
     min_chr = '"';
     break;
- }
+  }
   
- switch (cfg.timeMode) {
- default:
- case "canonical":
-   return "%d%s%02d%s".format(hrs, hr_chr, hr_mins, min_chr);
- case "flat_minutes":
-   return "%d%s".format(mins, min_chr); 
- }
+  switch (cfg.timeMode) {
+  default:
+  case "canonical":
+    if (cfg.timeStyle == 'ticker' || hrs > 0) {
+      return "%d%s%02d%s".format(hrs, hr_chr, hr_mins, min_chr);
+    }
+    // *fallthrough* 
+  case "flat_minutes":
+    return "%d%s".format(mins, min_chr); 
+  }
 }
 
 function format_percent(per_c) {
@@ -113,17 +130,10 @@ function format_label(per_c, time_s) {
     case "time":
       return format_time(time_s);
     case "percentage":
-    default:
       return format_percent(per_c);
+    default:
+      return "";
   }
-}
-
-function update_show() {
-  update_callback = update;
-  PowerIndicator.indicators.add(
-    label, { y_align: St.Align.MIDDLE, y_fill: false });
-  PowerIndicator.indicators.show();
-  update();
 }
 
 function update() {
@@ -143,7 +153,21 @@ function update() {
         if (ttf_s > 0) {
           // sometimes batteries' max capacity is below 100%
           // (e.g. when charge thresholds are in effect)
-          text += format_label(per_c, ttf_s);
+          switch (cfg.whenCharging) {
+          case 'nothing':
+            PowerIndicator.indicators.hide();
+            // *fallthrough*
+          case 'icon':
+            if (label) {
+              label.hide();
+            }
+            //update_callback = update_show;
+            break;
+          default:
+          case 'all':
+            text += format_label(per_c, ttf_s);
+            break;
+          }
           break;
         }
         // *fallthrough* in case the battery driver is confused
@@ -152,12 +176,16 @@ function update() {
         switch (cfg.whenFull) {
           case 'nothing':
             PowerIndicator.indicators.hide();
-            update_callback = update_show;
-            break;
-          case 'all':
-            text = format_percent(per_c);
             // *fallthrough*
           case 'icon':
+            if (label) {
+              label.hide();
+            }
+            update_callback = update_show;
+            break;
+          default:
+          case 'all':
+            text = format_percent(per_c);
             break;
         }
         break;
@@ -178,6 +206,8 @@ function update() {
     }
   }
 
-  label.set_text(text);
+  if (label) {
+    label.set_text(text);
+  }
 }
 
