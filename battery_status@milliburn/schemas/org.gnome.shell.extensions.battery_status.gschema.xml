@@ -1,10 +1,10 @@
 <?xml version="1.0" encoding="UTF-8"?>
 <schemalist>
-  <enum id='org.gnome.shell.extensions.battery_status.displayMode'>
+  <enum id='org.gnome.shell.extensions.battery_status.display-mode-enum'>
     <value value='0' nick='time'/>
     <value value='1' nick='percentage'/>
   </enum>
-  <enum id='org.gnome.shell.extensions.battery_status.timeMode'>
+  <enum id='org.gnome.shell.extensions.battery_status.time-mode-enum'>
     <value value='0' nick='canonical'/>
     <value value='1' nick='flat_minutes'/>
   </enum>
@@ -12,14 +12,19 @@
     <key name="show-when-full" type="b">
       <default>true</default>
       <summary>Show when full</summary>
-      <description>Display battery status even when not charging or discharging.</description>
+      <description>Display battery icon and label even when not charging or discharging.</description>
     </key>
-    <key name="display-mode" enum="org.gnome.shell.extensions.battery_status.displayMode">
+    <key name="show-label-when-full" type="b">
+      <default>true</default>
+      <summary>Show label when full</summary>
+      <description>Display battery label even when not charging or discharging.</description>
+    </key>
+    <key name="display-mode" enum="org.gnome.shell.extensions.battery_status.display-mode-enum">
       <default>'percentage'</default>
       <summary>Type of information to display</summary>
       <description/>
     </key>
-    <key name="time-mode" enum="org.gnome.shell.extensions.battery_status.timeMode">
+    <key name="time-mode" enum="org.gnome.shell.extensions.battery_status.time-mode-enum">
       <default>'canonical'</default>
       <summary>Format of time display</summary>
       <description/>

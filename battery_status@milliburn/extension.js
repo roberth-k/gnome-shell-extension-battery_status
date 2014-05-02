@@ -7,13 +7,13 @@ const Main = imports.ui.main;
 const UPower = imports.ui.status.power.UPower;
 const PowerIndicator = Main.panel.statusArea.aggregateMenu._power;
 
-let debug  = true;
 let label  = null;
 let handle = null;
 
-let cfg_displayMode  = "time";
-let cfg_timeMode     = "canonical";
-let cfg_showWhenFull = true;
+let cfg_displayMode       = "time";
+let cfg_timeMode          = "canonical";
+let cfg_showWhenFull      = true;
+let cfg_showLabelWhenFull = true;
 
 function init() {
 }
@@ -23,11 +23,13 @@ function enable() {
     return;
   }
   
-  let settings = Convenience.getSettings("org.gnome.shell.extensions.battery_status");
+  let settings = 
+    Convenience.getSettings("org.gnome.shell.extensions.battery_status");
   
-  cfg_displayMode  = settings.get_enum   ("display-mode");
-  cfg_timeMode     = settings.get_enum   ("time-mode");
-  cfg_showWhenFull = settings.get_boolean("show-when-full");
+  cfg_displayMode       = settings.get_enum   ("display-mode");
+  cfg_timeMode          = settings.get_enum   ("time-mode");
+  cfg_showWhenFull      = settings.get_boolean("show-when-full");
+  cfg_showLabelWhenFull = settings.get_boolean("show-label-when-full");
 
   label = new St.Label();
   update();
@@ -88,18 +90,20 @@ function update() {
   if (PowerIndicator._proxy.IsPresent) {
     switch (PowerIndicator._proxy.State) {
       case UPower.DeviceState.PENDING_CHARGE:
-        text += "...";
+        // probably happens during battery calibration
+        text = "...";
+        // *fallthrough*
       case UPower.DeviceState.CHARGING:
         if (ttf_s > 0) {
-          // sometimes batteries take actual capacity to be below 100%
+          // sometimes batteries report actual max capacity as below 100%
           text += format_label(per_c, ttf_s);
           break;
         }
-        // *fallthrough*
-        // if ttf_s is nought, be informative if so required
+        // *fallthrough* in case the battery driver is confused
+        // whether it's still charging or not.
       case UPower.DeviceState.FULLY_CHARGED:
         if (cfg_showWhenFull) {
-          text += format_percent(per_c);
+          text = format_percent(per_c);
         }
         break;
       case UPower.DeviceState.EMPTY:
@@ -108,9 +112,11 @@ function update() {
       case UPower.DeviceState.UNKNOWN:
         text = "??";
         break;
-      default:
       case UPower.DeviceState.PENDING_DISCHARGE:
-        text += "...";
+        // probably happens during battery calibration
+        text = "...";
+        // *fallthrough*
+      default:
       case UPower.DeviceState.DISCHARGING:
         text += format_label(per_c, tte_s);
         break;
