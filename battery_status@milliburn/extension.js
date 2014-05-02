@@ -1,11 +1,11 @@
 
+const Me = imports.misc.extensionUtils.getCurrentExtension();
+const Convenience = Me.imports.convenience;
+
 const St = imports.gi.St;
 const Main = imports.ui.main;
 const UPower = imports.ui.status.power.UPower;
 const PowerIndicator = Main.panel.statusArea.aggregateMenu._power;
-
-const Me = imports.misc.extensionUtils.getCurrentExtension();
-const Convenience = Me.imports.convenience;
 
 let debug  = true;
 let label  = null;
@@ -19,9 +19,15 @@ function init() {
 }
 
 function enable() {
-  if (! PowerIndicator._proxy.Type == UPower.DeviceKind.Battery) {
+  if (PowerIndicator._proxy.Type != UPower.DeviceKind.Battery) {
     return;
   }
+  
+  let settings = Convenience.getSettings("org.gnome.shell.extensions.battery_status");
+  
+  cfg_displayMode  = settings.get_enum   ("display-mode");
+  cfg_timeMode     = settings.get_enum   ("time-mode");
+  cfg_showWhenFull = settings.get_boolean("show-when-full");
 
   label = new St.Label();
   update();
@@ -81,17 +87,19 @@ function update() {
   
   if (PowerIndicator._proxy.IsPresent) {
     switch (PowerIndicator._proxy.State) {
+      case UPower.DeviceState.PENDING_CHARGE:
+        text += "...";
       case UPower.DeviceState.CHARGING:
         if (ttf_s > 0) {
-          // sometimes batteries put actual capacity below 100%
-          text = format_label(per_c, ttf_s);
+          // sometimes batteries take actual capacity to be below 100%
+          text += format_label(per_c, ttf_s);
           break;
         }
         // *fallthrough*
-        // if ttf is nought, be informative if so required
+        // if ttf_s is nought, be informative if so required
       case UPower.DeviceState.FULLY_CHARGED:
         if (cfg_showWhenFull) {
-          text = format_percent(per_c);
+          text += format_percent(per_c);
         }
         break;
       case UPower.DeviceState.EMPTY:
@@ -100,12 +108,15 @@ function update() {
       case UPower.DeviceState.UNKNOWN:
         text = "??";
         break;
+      default:
+      case UPower.DeviceState.PENDING_DISCHARGE:
+        text += "...";
       case UPower.DeviceState.DISCHARGING:
-        text = format_label(per_c, tte_s);
+        text += format_label(per_c, tte_s);
         break;
     }
   }
-  
+
   label.set_text(text);
 }
 
