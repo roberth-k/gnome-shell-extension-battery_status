@@ -32,12 +32,18 @@ const St = imports.gi.St;
 const Main = imports.ui.main;
 const UPower = imports.ui.status.power.UPower;
 const PowerIndicator = Main.panel.statusArea.aggregateMenu._power;
+const ShellConfig = imports.misc.config;
 
 let label   = null;
 let signals = [];
 let cfg     = {};
 
 let update_callback = null;
+
+function shell_version() {
+    var strs = ShellConfig.PACKAGE_VERSION.split('.');
+    return strs[0] + "." + strs[1];
+}
 
 function init() {
 }
@@ -160,15 +166,73 @@ function format_label(per_c, time_s) {
   }
 }
 
+function read_battery() {
+  switch (shell_version()) {
+  default:
+  case "3.12":
+    return [PowerIndicator._proxy.TimeToEmpty,
+            PowerIndicator._proxy.TimeToFull,
+            PowerIndicator._proxy.Percentage,
+            PowerIndicator._proxy.IsPresent,
+            PowerIndicator._proxy.State];
+  case "3.10":
+    let devices = PowerIndicator._proxy.GetDevicesSync();
+    let n_devs = 0;
+    let is_present = false;
+    let tte_s = 0;
+    let ttf_s = 0;
+    let per_c = 0;
+    let out_state = UPower.DeviceState.UNKNOWN;
+
+    for (let i = 0; i < devices[0].length; ++i) {
+      let [id, type, icon, percent, state, time] = devices[0][i];
+
+      ++n_devs;
+
+      is_present  = true;
+      tte_s      += time;
+      ttf_s       = tte_s;
+      per_c       = ((per_c * (n_devs - 1)) + percent) / n_devs;
+
+      switch (state) {
+      case UPower.DeviceState.DISCHARGING:
+      case UPower.DeviceState.PENDING_DISCHARGE:
+        out_state = state;
+        break;
+      case UPower.DeviceState.CHARGING:
+      case UPower.DeviceState.PENDING_CHARGE:
+        switch (out_state) {
+        case UPower.DeviceState.EMPTY:
+        case UPower.DeviceState.UNKNOWN:
+          out_state = state;
+          break;
+        }
+        break;
+      case UPower.DeviceState.EMPTY:
+        switch (out_state) {
+        case UPower.DeviceState.UNKNOWN:
+          out_state = state;
+          break;
+        }
+      default:
+        break;
+      }
+    }
+
+    return [tte_s, ttf_s, per_c, is_present, out_state];
+  }
+}
+
 function update() {
-  let tte_s = PowerIndicator._proxy.TimeToEmpty;
-  let ttf_s = PowerIndicator._proxy.TimeToFull;
-  let per_c = PowerIndicator._proxy.Percentage;
+  let [tte_s, ttf_s, per_c,
+       is_present, state] = read_battery();
   
   let text  = "";
+
+  global.log(is_present + " " + ttf_s + " " + per_c + " " + state);
   
-  if (PowerIndicator._proxy.IsPresent) {
-    switch (PowerIndicator._proxy.State) {
+  if (is_present) {
+    switch (state) {
       case UPower.DeviceState.PENDING_CHARGE:
         // probably happens during battery calibration
         text = "...";
