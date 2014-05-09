@@ -38,7 +38,8 @@ let label   = null;
 let signals = [];
 let cfg     = {};
 
-let update_callback = null;
+let indicators_visible = true;
+let label_visible      = false;
 
 function shell_version() {
     var strs = ShellConfig.PACKAGE_VERSION.split('.');
@@ -55,30 +56,31 @@ function enable() {
     label = new St.Label();
     PowerIndicator.indicators.add(
       label, { y_align: St.Align.MIDDLE, y_fill: false });
+    label_visible = true;
   }
   
-  update_show();
+  update();
     
   signals.push([PowerIndicator._proxy,
                 PowerIndicator._proxy.connect('g-properties-changed',
-                                              function () {
-                                                update_callback.call(this);
-                                              })]);
+                                              update)]);
 }
 
 function disable() {
+  PowerIndicator.indicators.show();
+  indicators_visible = true;
+  
   if (label) {
     PowerIndicator.indicators.remove_child(label);
     label.destroy();
     label = null;
+    label_visible = false;
   }
   
   while (signals.length > 0) {
     let [obj, sig] = signals.pop();
     obj.disconnect(sig);
   }
-  
-  update_callback = null;
 }
 
 function restart() {
@@ -86,13 +88,33 @@ function restart() {
   enable();
 }
 
-function update_show() {
-  update_callback = update;
-  if (label) {
-    label.show();
+function update_visible(option) {
+  switch (option) {
+  case 'nothing':
+    PowerIndicator.indicators.hide();
+    indicators_visible = false;
+    break;
+  case 'icon':
+    if (!indicators_visible) {
+      PowerIndicator.indicators.show();
+      indicators_visible = true;
+    }
+    if (label) {
+      label.hide();
+      label_visible = false;
+    }
+    break;
+  case 'all':
+    if (!indicators_visible) {
+      PowerIndicator.indicators.show();
+      indicators_visible = true;
+    }
+    if (label && !label_visible) {
+      label.show();
+      label_visible = true;
+    }
+    break;
   }
-  PowerIndicator.indicators.show();
-  update();
 }
 
 function init_settings() {
@@ -100,10 +122,10 @@ function init_settings() {
     signals.push([Settings, Settings.connect("changed::" + key, restart)]);
 
     switch(typeof(def)) {
-      case "boolean":
-        return Settings.get_boolean(key);
-      default:
-        return Settings.get_string(key);
+    case "boolean":
+      return Settings.get_boolean(key);
+    default:
+      return Settings.get_string(key);
     }
   }
 
@@ -192,6 +214,7 @@ function read_battery() {
       is_present  = true;
       tte_s      += time;
       ttf_s       = tte_s;
+      // Round the total percentage for multiple batteries
       per_c       = ((per_c * (n_devs - 1)) + percent) / n_devs;
 
       switch (state) {
@@ -228,73 +251,52 @@ function update() {
        is_present, state] = read_battery();
   
   let text  = "";
-
-  global.log(is_present + " " + ttf_s + " " + per_c + " " + state);
   
   if (is_present) {
     switch (state) {
-      case UPower.DeviceState.PENDING_CHARGE:
-        // probably happens during battery calibration
-        text = "...";
-        // *fallthrough*
-      case UPower.DeviceState.CHARGING:
-        if (ttf_s > 0) {
-          // sometimes batteries' max capacity is below 100%
-          // (e.g. when charge thresholds are in effect)
-          switch (cfg.whenCharging) {
-          case 'nothing':
-            PowerIndicator.indicators.hide();
-            // *fallthrough*
-          case 'icon':
-            if (label) {
-              label.hide();
-            }
-            //update_callback = update_show;
-            break;
-          default:
-          case 'all':
-            text += format_label(per_c, ttf_s);
-            break;
-          }
-          break;
-        }
-        // *fallthrough* in case the battery driver is confused
-        // whether it's still charging or not.
-      case UPower.DeviceState.FULLY_CHARGED:
-        switch (cfg.whenFull) {
-          case 'nothing':
-            PowerIndicator.indicators.hide();
-            // *fallthrough*
-          case 'icon':
-            if (label) {
-              label.hide();
-            }
-            update_callback = update_show;
-            break;
-          default:
-          case 'all':
-            text = format_percent(per_c);
-            break;
+    case UPower.DeviceState.PENDING_CHARGE:
+      // probably happens during battery calibration
+      text = "...";
+      // *fallthrough*
+    case UPower.DeviceState.CHARGING:
+      if (ttf_s > 0) {
+        // sometimes batteries' max capacity is below 100%
+        // (e.g. when charge thresholds are in effect)
+        update_visible(cfg.whenCharging);
+        if (label_visible) {
+          text += format_label(per_c, ttf_s);
         }
         break;
-      case UPower.DeviceState.EMPTY:
-        text = "--";
-        break;
-      case UPower.DeviceState.UNKNOWN:
-        text = "??";
-        break;
-      case UPower.DeviceState.PENDING_DISCHARGE:
-        // probably happens during battery calibration
-        text = "...";
-        // *fallthrough*
-      default:
-      case UPower.DeviceState.DISCHARGING:
+      }
+      // *fallthrough* in case the battery driver is confused
+      // whether it's still charging or not.
+    case UPower.DeviceState.FULLY_CHARGED:
+      update_visible(cfg.whenFull);
+      if (label_visible) {
+        text = format_percent(per_c);
+      }
+      break;
+    case UPower.DeviceState.EMPTY:
+      text = "--";
+      break;
+    case UPower.DeviceState.UNKNOWN:
+      text = "??";
+      break;
+    case UPower.DeviceState.PENDING_DISCHARGE:
+      // probably happens during battery calibration
+      text = "...";
+      // *fallthrough*
+    default:
+    case UPower.DeviceState.DISCHARGING:
+      update_visible('all');
+      if (label_visible) {
         text += format_label(per_c, tte_s);
-        break;
+      }
+      break;
     }
   }
 
-  if (label) {
+  if (label && label_visible) {
     label.set_text(text);
   }
 }
