@@ -18,7 +18,7 @@
  * along with this program. If not, see <http://www.gnu.org/licenses/>.
  *
  * Alternatively, you can redistribute and/or modify this program under the
- * same terms that the “gnome-shell” or “gnome-shell-extensions” software
+ * same terms that the "gnome-shell" or "gnome-shell-extensions" software
  * packages are being distributed by The GNOME Project.
  *
  */
@@ -30,7 +30,11 @@ const Settings =
 
 const Gtk = imports.gi.Gtk;
 
+const Gettext = imports.gettext.domain('battery_status');
+const _ = Gettext.gettext;
+
 function init() {
+    Convenience.initTranslations("battery_status");
 }
 
 function buildPrefsWidget() {
@@ -43,26 +47,26 @@ function buildPrefsWidget() {
   });
   
   let options = [
-    [ "Display mode",
+    [ _("Display mode"),
       make_combo('display-mode', 
-                 ['Time', 'Percentage', 'Icon only']) ],
-    [ "Format time as",
+                 [_("Time"), _("Percentage"), _("Icon only")]) ],
+    [ _("Format time as"),
       make_combo('time-mode', 
-                 ['Canonical (h:mm)',
-                  'Minutes only (mm)']) ],
-    [ "Style time as",
+                 [_("Canonical (h:mm)"),
+                  _("Minutes only (mm)")]) ],
+    [ _("Style time as"),
       make_combo('time-style', 
-                 ['Canonical (1:30)',
-                  'Labels (1h30m)',
-                  'Angular (1\'30")']) ],
-    [ 'When charging, show',
-      make_combo('when-charging', ['Nothing',
-                                   'Icon only',
-                                   'Icon and label']) ],
-    [ 'When battery full, show',
-      make_combo('when-full', ['Nothing',
-                               'Icon only',
-                               'Icon and label']) ],
+                 [_("Canonical (1:30)"),
+                  _("Labels (1h30m)"),
+                  _("Angular (1'30\")")]) ],
+    [ _("When charging, show"),
+      make_combo('when-charging', [_("Nothing"),
+                                   _("Icon only"),
+                                   _("Icon and label")]) ],
+    [ _("When battery full, show"),
+      make_combo('when-full', [_("Nothing"),
+                               _("Icon only"),
+                               _("Icon and label")]) ],
   ];
   
   for (var i in options) {
