@@ -206,39 +206,41 @@ function read_battery() {
     let per_c = 0;
     let out_state = UPower.DeviceState.UNKNOWN;
 
-    for (let i = 0; i < devices[0].length; ++i) {
-      let [id, type, icon, percent, state, time] = devices[0][i];
+    for (let i = 0; i < devices.length; ++i) {
+      for (let j = 0; j < devices[i].length; ++j) {
+        let [id, type, icon, percent, state, time] = devices[i][j];
 
-      ++n_devs;
+        ++n_devs;
 
-      is_present  = true;
-      tte_s      += time;
-      ttf_s       = tte_s;
-      // Round the total percentage for multiple batteries
-      per_c       = ((per_c * (n_devs - 1)) + percent) / n_devs;
+        is_present  = true;
+        tte_s      += time;
+        ttf_s       = tte_s;
+        // Round the total percentage for multiple batteries
+        per_c       = ((per_c * (n_devs - 1)) + percent) / n_devs;
 
-      switch (state) {
-      case UPower.DeviceState.DISCHARGING:
-      case UPower.DeviceState.PENDING_DISCHARGE:
-        out_state = state;
-        break;
-      case UPower.DeviceState.CHARGING:
-      case UPower.DeviceState.PENDING_CHARGE:
-        switch (out_state) {
+        switch (state) {
+        case UPower.DeviceState.DISCHARGING:
+        case UPower.DeviceState.PENDING_DISCHARGE:
+          out_state = state;
+          break;
+        case UPower.DeviceState.CHARGING:
+        case UPower.DeviceState.PENDING_CHARGE:
+          switch (out_state) {
+          case UPower.DeviceState.EMPTY:
+          case UPower.DeviceState.UNKNOWN:
+            out_state = state;
+            break;
+          }
+          break;
         case UPower.DeviceState.EMPTY:
-        case UPower.DeviceState.UNKNOWN:
-          out_state = state;
+          switch (out_state) {
+          case UPower.DeviceState.UNKNOWN:
+            out_state = state;
+            break;
+          }
+        default:
           break;
         }
-        break;
-      case UPower.DeviceState.EMPTY:
-        switch (out_state) {
-        case UPower.DeviceState.UNKNOWN:
-          out_state = state;
-          break;
-        }
-      default:
-        break;
       }
     }
 
