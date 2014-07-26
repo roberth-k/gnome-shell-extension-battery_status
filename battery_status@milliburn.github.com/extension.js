@@ -174,7 +174,7 @@ function format_time(time_s) {
 }
 
 function format_percent(per_c) {
-  return "%d%%".format(Math.floor(per_c));
+  return "%d%%".format(Math.ceil(per_c));
 }
 
 function format_label(per_c, time_s) {
@@ -204,12 +204,16 @@ function read_battery() {
     let tte_s = 0;
     let ttf_s = 0;
     let per_c = 0;
-    let out_state = UPower.DeviceState.UNKNOWN;
+    let out_state = UPower.DeviceState.EMPTY;
 
     for (let i = 0; i < devices.length; ++i) {
       for (let j = 0; j < devices[i].length; ++j) {
         let [id, type, icon, percent, state, time] = devices[i][j];
 
+        if (type != UPower.DeviceKind.BATTERY) {
+          continue;
+        }
+        
         ++n_devs;
 
         is_present  = true;
@@ -217,27 +221,27 @@ function read_battery() {
         ttf_s       = tte_s;
         // Round the total percentage for multiple batteries
         per_c       = ((per_c * (n_devs - 1)) + percent) / n_devs;
+        
+        // charging > discharging > full > empty
+        // Ignore the other states.
 
         switch (state) {
         case UPower.DeviceState.DISCHARGING:
         case UPower.DeviceState.PENDING_DISCHARGE:
-          out_state = state;
+          if (out_state != UPower.DeviceState.CHARGING) {
+            out_state = UPower.DeviceState.DISCHARGING;
+          }
           break;
         case UPower.DeviceState.CHARGING:
         case UPower.DeviceState.PENDING_CHARGE:
-          switch (out_state) {
-          case UPower.DeviceState.EMPTY:
-          case UPower.DeviceState.UNKNOWN:
-            out_state = state;
-            break;
+          out_state = UPower.DeviceState.CHARGING;
+          break;
+        case UPower.DeviceState.FULLY_CHARGED:
+          if (out_state != UPower.DeviceState.CHARGING
+              && out_state != UPower.DeviceState.DISCHARGING) {
+            out_state = UPower.DeviceState.FULLY_CHARGED;
           }
           break;
-        case UPower.DeviceState.EMPTY:
-          switch (out_state) {
-          case UPower.DeviceState.UNKNOWN:
-            out_state = state;
-            break;
-          }
         default:
           break;
         }
@@ -257,16 +261,13 @@ function update() {
   if (is_present) {
     switch (state) {
     case UPower.DeviceState.PENDING_CHARGE:
-      // probably happens during battery calibration
-      text = "...";
-      // *fallthrough*
     case UPower.DeviceState.CHARGING:
       if (ttf_s > 0) {
         // sometimes batteries' max capacity is below 100%
         // (e.g. when charge thresholds are in effect)
         update_visible(cfg.whenCharging);
         if (label_visible) {
-          text += format_label(per_c, ttf_s);
+          text = format_label(per_c, ttf_s);
         }
         break;
       }
@@ -279,20 +280,15 @@ function update() {
       }
       break;
     case UPower.DeviceState.EMPTY:
+    case UPower.DeviceState.UNKNOWN:
       text = "--";
       break;
-    case UPower.DeviceState.UNKNOWN:
-      text = "??";
-      break;
-    case UPower.DeviceState.PENDING_DISCHARGE:
-      // probably happens during battery calibration
-      text = "...";
-      // *fallthrough*
     default:
+    case UPower.DeviceState.PENDING_DISCHARGE:
     case UPower.DeviceState.DISCHARGING:
       update_visible('all');
       if (label_visible) {
-        text += format_label(per_c, tte_s);
+        text = format_label(per_c, tte_s);
       }
       break;
     }
