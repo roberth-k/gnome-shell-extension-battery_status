@@ -40,18 +40,20 @@ let cfg     = {};
 
 let indicators_visible = true;
 let label_visible      = false;
-
-function shell_version() {
-    var strs = ShellConfig.PACKAGE_VERSION.split('.');
-    return strs[0] + "." + strs[1];
-}
+let data_method        = "native";
 
 function init() {
 }
 
 function enable() {
   init_settings();
-  
+
+  if ("GetDevicesSync" in PowerIndicator._proxy) {
+    data_method = "device";
+  } else {
+    data_method = "native";
+  }
+
   if (cfg.displayMode != 'icon_only') {
     label = new St.Label();
     PowerIndicator.indicators.add(
@@ -189,15 +191,15 @@ function format_label(per_c, time_s) {
 }
 
 function read_battery() {
-  switch (shell_version()) {
+  switch (data_method) {
   default:
-  case "3.12":
+  case "native":
     return [PowerIndicator._proxy.TimeToEmpty,
             PowerIndicator._proxy.TimeToFull,
             PowerIndicator._proxy.Percentage,
             PowerIndicator._proxy.IsPresent,
             PowerIndicator._proxy.State];
-  case "3.10":
+  case "device":
     let devices = PowerIndicator._proxy.GetDevicesSync();
     let n_devs = 0;
     let is_present = false;
