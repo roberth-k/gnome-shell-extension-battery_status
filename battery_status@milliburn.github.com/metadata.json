@@ -1,7 +1,7 @@
 {
-  "version": 6,
+  "version": 7,
   "shell-version": [
-    "3.10", "3.12", "3.14"
+    "3.10", "3.12", "3.14", "3.16"
   ],
   "settings-schema": "org.gnome.shell.extensions.battery_status",
   "original-author": "roberth@winter-weht.net", 
