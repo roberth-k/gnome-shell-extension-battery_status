@@ -1,7 +1,7 @@
 Battery Status
 ====================================
 
-*for Gnome Shell 3.10 / 3.12 / 3.14*
+*for Gnome Shell 3.10 / 3.12 / 3.14 / 3.16 / 3.18*
 
 Features
 --------
