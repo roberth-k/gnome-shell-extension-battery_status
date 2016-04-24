@@ -32,6 +32,10 @@ msgstr ""
 msgid "Icon only"
 msgstr ""
 
+#: prefs.js:52
+msgid "Time and percentage"
+msgstr ""
+
 #: prefs.js:53
 msgid "Format time as"
 msgstr ""

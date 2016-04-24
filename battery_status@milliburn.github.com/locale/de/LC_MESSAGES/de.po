@@ -33,6 +33,10 @@ msgstr "Prozent"
 msgid "Icon only"
 msgstr "Nur Symbol"
 
+#: prefs.js:52
+msgid "Time and percentage"
+msgstr "Zeit und prozent"
+
 #: prefs.js:53
 msgid "Format time as"
 msgstr "Format der Zeitanzeige"
