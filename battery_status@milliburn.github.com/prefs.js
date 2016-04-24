@@ -49,7 +49,7 @@ function buildPrefsWidget() {
   let options = [
     [ _("Display mode"),
       make_combo('display-mode', 
-                 [_("Time"), _("Percentage"), _("Icon only")]) ],
+                 [_("Time"), _("Percentage"), _("Icon only"), _("Time and percentage")]) ],
     [ _("Format time as"),
       make_combo('time-mode', 
                  [_("Canonical (h:mm)"),

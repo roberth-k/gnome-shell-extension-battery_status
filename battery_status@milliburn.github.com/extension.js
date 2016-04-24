@@ -140,6 +140,10 @@ function init_settings() {
   };
 }
 
+function format_both(time_s, per_c) {
+  return format_percent(per_c) + ", " + format_time(time_s) ;
+}
+
 function format_time(time_s) {
   let mins    = Math.round(time_s / 60);
  
@@ -185,6 +189,8 @@ function format_label(per_c, time_s) {
       return format_time(time_s);
     case "percentage":
       return format_percent(per_c);
+    case "both":
+      return format_both(time_s, per_c);
     default:
       return "";
   }

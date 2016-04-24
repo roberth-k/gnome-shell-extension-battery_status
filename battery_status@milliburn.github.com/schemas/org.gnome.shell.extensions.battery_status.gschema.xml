@@ -4,6 +4,7 @@
     <value value='0' nick='time'/>
     <value value='1' nick='percentage'/>
     <value value='2' nick='icon_only'/>
+    <value value='3' nick='both'/>
   </enum>
   <enum id='org.gnome.shell.extensions.battery_status.time-mode-enum'>
     <value value='0' nick='canonical'/>
