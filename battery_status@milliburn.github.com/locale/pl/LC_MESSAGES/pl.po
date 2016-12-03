@@ -1,0 +1,79 @@
+# SOME DESCRIPTIVE TITLE.
+# Copyright (C) YEAR THE PACKAGE'S COPYRIGHT HOLDER
+# This file is distributed under the same license as the PACKAGE package.
+# FIRST AUTHOR <EMAIL@ADDRESS>, YEAR.
+#
+msgid ""
+msgstr ""
+"Project-Id-Version: Gnome Shell Extension Battery status\n"
+"Report-Msgid-Bugs-To: \n"
+"POT-Creation-Date: 2014-06-08 14:39+0200\n"
+"PO-Revision-Date: 2016-12-03 14:12+0100\n"
+"Last-Translator: Piotr Komur <pkomur@gmail.com>\n"
+"Language-Team: Polish <pkomur@gmail.com>\n"
+"MIME-Version: 1.0\n"
+"Content-Type: text/plain; charset=UTF-8\n"
+"Content-Transfer-Encoding: 8bit\n"
+"X-Generator: Poedit 1.8.9\n"
+"Language: pl\n"
+
+#: prefs.js:50
+msgid "Display mode"
+msgstr "Tryb wyświetlania"
+
+#: prefs.js:52
+msgid "Time"
+msgstr "Czas"
+
+#: prefs.js:52
+msgid "Percentage"
+msgstr "Procenty"
+
+#: prefs.js:52 prefs.js:64 prefs.js:68
+msgid "Icon only"
+msgstr "Tylko ikona"
+
+#: prefs.js:53
+msgid "Format time as"
+msgstr "Format czasu jako"
+
+#: prefs.js:55
+msgid "Canonical (h:mm)"
+msgstr "Zwykły (h:mm)"
+
+#: prefs.js:56
+msgid "Minutes only (mm)"
+msgstr "Tylko minuty (mm)"
+
+#: prefs.js:57
+msgid "Style time as"
+msgstr "Styl"
+
+#: prefs.js:59
+msgid "Canonical (1:30)"
+msgstr "Zwykły (1:30)"
+
+#: prefs.js:60
+msgid "Labels (1h30m)"
+msgstr "Etykieta (1h30m)"
+
+#: prefs.js:61
+#, fuzzy
+msgid "Angular (1'30\")"
+msgstr "Prime (1'30\")"
+
+#: prefs.js:62
+msgid "When charging, show"
+msgstr "Pokazuj podczas ładowania"
+
+#: prefs.js:63 prefs.js:67
+msgid "Nothing"
+msgstr "Nic"
+
+#: prefs.js:65 prefs.js:69
+msgid "Icon and label"
+msgstr "Ikona i etykieta"
+
+#: prefs.js:66
+msgid "When battery full, show"
+msgstr "Pokazuj, gdy akumulator jest naładowany"
