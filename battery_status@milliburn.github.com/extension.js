@@ -55,7 +55,7 @@ function enable() {
   }
 
   if (cfg.displayMode != 'icon_only') {
-    label = new St.Label({ y_align: St.Align.MIDDLE, y_expand: false });
+    label = new St.Label({ y_align: St.Align.END, y_expand: false });
     PowerIndicator.add(label);
     label_visible = true;
   }
