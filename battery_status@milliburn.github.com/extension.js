@@ -55,9 +55,8 @@ function enable() {
   }
 
   if (cfg.displayMode != 'icon_only') {
-    label = new St.Label();
-    PowerIndicator.indicators.add(
-      label, { y_align: St.Align.MIDDLE, y_fill: false });
+    label = new St.Label({ y_align: St.Align.END, y_expand: false });
+    PowerIndicator.add(label);
     label_visible = true;
   }
   
@@ -69,11 +68,11 @@ function enable() {
 }
 
 function disable() {
-  PowerIndicator.indicators.show();
+  PowerIndicator.show();
   indicators_visible = true;
   
   if (label) {
-    PowerIndicator.indicators.remove_child(label);
+    PowerIndicator.remove_child(label);
     label.destroy();
     label = null;
     label_visible = false;
@@ -93,12 +92,12 @@ function restart() {
 function update_visible(option) {
   switch (option) {
   case 'nothing':
-    PowerIndicator.indicators.hide();
+    PowerIndicator.hide();
     indicators_visible = false;
     break;
   case 'icon':
     if (!indicators_visible) {
-      PowerIndicator.indicators.show();
+      PowerIndicator.show();
       indicators_visible = true;
     }
     if (label) {
@@ -108,7 +107,7 @@ function update_visible(option) {
     break;
   case 'all':
     if (!indicators_visible) {
-      PowerIndicator.indicators.show();
+      PowerIndicator.show();
       indicators_visible = true;
     }
     if (label && !label_visible) {
